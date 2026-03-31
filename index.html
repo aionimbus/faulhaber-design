@@ -47,15 +47,73 @@
     }
 
     #logo {
-      width: 80vmin;
+      width: 60vmin;
       height: auto;
       opacity: 0.08;
       transform-origin: center center;
       transition: transform 0.06s linear, opacity 0.06s linear;
+      border-radius: 4px;
     }
 
     @media (prefers-reduced-motion: reduce) {
       #logo { transition: none; opacity: 0.12; }
+    }
+
+    /* ── SCROLL INDICATOR ─────────────────────── */
+    #scroll-hint {
+      position: fixed;
+      bottom: 2.5rem;
+      right: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      opacity: 1;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    #scroll-hint.hidden { opacity: 0; }
+
+    .scroll-wheel {
+      width: 26px;
+      height: 42px;
+      border: 2px solid rgba(10, 10, 10, 0.35);
+      border-radius: 13px;
+      position: relative;
+    }
+
+    .scroll-wheel::before {
+      content: '';
+      position: absolute;
+      top: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 4px;
+      height: 8px;
+      background: rgba(10, 10, 10, 0.5);
+      border-radius: 2px;
+      animation: scroll-dot 1.6s ease-in-out infinite;
+    }
+
+    @keyframes scroll-dot {
+      0%   { top: 6px; opacity: 1; }
+      80%  { top: 22px; opacity: 0; }
+      100% { top: 6px; opacity: 0; }
+    }
+
+    .scroll-label {
+      font-size: 0.62rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      opacity: 0.35;
+      color: #0a0a0a;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .scroll-wheel::before { animation: none; }
     }
 
     /* ── CONTACT SECTION ──────────────────────── */
@@ -93,6 +151,15 @@
     section {
       padding: 8rem 10% 8rem;
       border-top: 1px solid rgba(10, 10, 10, 0.1);
+    }
+
+    @media (max-width: 640px) {
+      section {
+        padding: 5rem 6% 5rem;
+      }
+      footer {
+        padding: 2.5rem 6%;
+      }
     }
 
     .section-label {
@@ -229,24 +296,16 @@
 </head>
 <body>
 
+  <!-- ── SCROLL INDICATOR ── -->
+  <div id="scroll-hint">
+    <div class="scroll-wheel"></div>
+    <span class="scroll-label">Scroll</span>
+  </div>
+
   <!-- ── HERO: sticky scroll-driven logo animation ── -->
   <section id="hero">
     <div id="logo-wrap">
-      <svg id="logo"
-           viewBox="0 0 380 210"
-           xmlns="http://www.w3.org/2000/svg"
-           role="img"
-           aria-label="fd monogram — Faulhaber Design">
-        <text
-          x="190" y="180"
-          text-anchor="middle"
-          font-family="'Helvetica Neue', Helvetica, Arial, sans-serif"
-          font-weight="700"
-          font-size="195"
-          letter-spacing="-8"
-          fill="#0a0a0a">fd</text>
-        <line x1="28" y1="200" x2="352" y2="200" stroke="#0a0a0a" stroke-width="1.2"/>
-      </svg>
+      <img id="logo" src="logo.jpg" alt="fd monogram — Faulhaber Design"/>
     </div>
   </section>
 
@@ -395,6 +454,15 @@
           requestAnimationFrame(function () { update(); rafPending = false; });
         }
       }
+
+      // Hide scroll indicator once user starts scrolling
+      const scrollHint = document.getElementById('scroll-hint');
+      window.addEventListener('scroll', function hideHint() {
+        if (window.scrollY > 40) {
+          scrollHint.classList.add('hidden');
+          window.removeEventListener('scroll', hideHint);
+        }
+      }, { passive: true });
 
       window.addEventListener('scroll', scheduleUpdate, { passive: true });
       window.addEventListener('resize', scheduleUpdate);
