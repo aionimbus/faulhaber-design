@@ -314,17 +314,18 @@
             <stop offset="100%" stop-color="#5858c8"/>
           </linearGradient>
         </defs>
-        <!-- gradient background square -->
-        <rect width="176" height="176" fill="url(#fdBg)" rx="6"/>
-        <!-- fd lettermark — intentionally large so letterforms bleed off edges like the original -->
-        <text id="fd-text" x="5" y="152"
+        <!-- background — sized dynamically by JS -->
+        <rect id="fd-bg" width="176" height="176" fill="url(#fdBg)" rx="10"/>
+        <!-- split into two tspans so each can be measured independently -->
+        <text id="fd-text"
               font-family="'Helvetica Neue', 'Arial Black', Helvetica, Arial, sans-serif"
               font-weight="900"
               font-size="162"
-              letter-spacing="-5"
-              fill="#0e0e20">fd</text>
-        <!-- thick underline bar — x/width snapped to "d" bounds via JS on load -->
-        <rect id="fd-bar" x="90" y="156" width="76" height="12" rx="1" fill="#0e0e20"/>
+              fill="#0e0e20">
+          <tspan id="fd-f">f</tspan><tspan id="fd-d" letter-spacing="-5">d</tspan>
+        </text>
+        <!-- underline bar — position set entirely by JS -->
+        <rect id="fd-bar" x="0" y="0" width="0" height="0" rx="1" fill="#0e0e20"/>
       </svg>
     </div>
   </section>
@@ -475,22 +476,56 @@
         }
       }
 
-      // Align underline bar right edge to the right edge of the "d" glyph
-      (function alignLogoBar() {
-        const txt = document.getElementById('fd-text');
-        const bar = document.getElementById('fd-bar');
-        if (!txt || !bar) return;
-        const bb   = txt.getBBox();   // exact rendered bounds in SVG user units
-        const barH = 11;
-        const barY = 162;             // fixed near bottom of 176px viewBox
-        // align bar's right edge to text's right edge; start ≈ where "d" begins
-        const barRight = bb.x + bb.width;
-        const barX     = bb.x + bb.width * 0.52;
-        const barW     = barRight - barX;
-        bar.setAttribute('x',      barX.toFixed(1));
-        bar.setAttribute('y',      barY);
-        bar.setAttribute('width',  barW.toFixed(1));
+      // Align logo: equal margins, bar aligned exactly to "d" glyph
+      (function alignLogo() {
+        const svg  = document.getElementById('logo');
+        const bg   = document.getElementById('fd-bg');
+        const txt  = document.getElementById('fd-text');
+        const dEl  = document.getElementById('fd-d');
+        const bar  = document.getElementById('fd-bar');
+        if (!svg || !txt || !dEl || !bar) return;
+
+        // First: position text at a known baseline so getBBox is meaningful
+        txt.setAttribute('x', '0');
+        txt.setAttribute('y', '0');
+
+        const textBB = txt.getBBox();   // full "fd" bounds
+        const dBB    = dEl.getBBox();   // "d" only bounds
+
+        // Bar: left/right flush with the "d" glyph, with a small gap below text
+        const barH   = Math.round(textBB.height * 0.065);  // ~6.5% of cap height
+        const barGap = Math.round(textBB.height * 0.04);
+        const barY   = textBB.y + textBB.height + barGap;
+        bar.setAttribute('x',      dBB.x.toFixed(1));
+        bar.setAttribute('y',      barY.toFixed(1));
+        bar.setAttribute('width',  dBB.width.toFixed(1));
         bar.setAttribute('height', barH);
+
+        // Equal margin around everything (text + bar together)
+        const contentLeft   = textBB.x;
+        const contentTop    = textBB.y;
+        const contentRight  = textBB.x + textBB.width;
+        const contentBottom = barY + barH;
+        const contentW = contentRight - contentLeft;
+        const contentH = contentBottom - contentTop;
+
+        // Make it square with the same margin on all sides
+        const side   = Math.max(contentW, contentH);
+        const margin = side * 0.12;           // 12% padding on each side
+        const total  = side + margin * 2;
+
+        // Centre content within the square viewBox
+        const vx = contentLeft + contentW / 2 - total / 2;
+        const vy = contentTop  + contentH / 2 - total / 2;
+
+        svg.setAttribute('viewBox', `${vx.toFixed(2)} ${vy.toFixed(2)} ${total.toFixed(2)} ${total.toFixed(2)}`);
+        bg.setAttribute('width',  total.toFixed(2));
+        bg.setAttribute('height', total.toFixed(2));
+        bg.setAttribute('x', vx.toFixed(2));
+        bg.setAttribute('y', vy.toFixed(2));
+        const r = (total * 0.06).toFixed(2);
+        bg.setAttribute('rx', r);
+        bg.setAttribute('ry', r);
       })();
 
       // Hide scroll indicator once user starts scrolling
