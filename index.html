@@ -322,7 +322,7 @@
               font-weight="900"
               font-size="162"
               fill="#0e0e20">
-          <tspan id="fd-f">f</tspan><tspan id="fd-d" letter-spacing="-5">d</tspan>
+          <tspan id="fd-f">f</tspan><tspan id="fd-d" letter-spacing="-5" dy="14">d</tspan>
         </text>
         <!-- underline bar — position set entirely by JS -->
         <rect id="fd-bar" x="0" y="0" width="0" height="0" rx="1" fill="#0e0e20"/>
@@ -493,8 +493,8 @@
         const dBB    = dEl.getBBox();   // "d" only bounds
 
         // Bar: left/right flush with the "d" glyph, with a small gap below text
-        const barH   = Math.round(textBB.height * 0.065);  // ~6.5% of cap height
-        const barGap = Math.round(textBB.height * 0.04);
+        const barH   = Math.round(textBB.height * 0.055);  // ~5.5% of cap height
+        const barGap = Math.round(textBB.height * 0.01);  // very tight gap
         const barY   = textBB.y + textBB.height + barGap;
         bar.setAttribute('x',      dBB.x.toFixed(1));
         bar.setAttribute('y',      barY.toFixed(1));
