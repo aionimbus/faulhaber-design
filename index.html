@@ -317,14 +317,14 @@
         <!-- gradient background square -->
         <rect width="176" height="176" fill="url(#fdBg)" rx="6"/>
         <!-- fd lettermark — intentionally large so letterforms bleed off edges like the original -->
-        <text x="5" y="152"
+        <text id="fd-text" x="5" y="152"
               font-family="'Helvetica Neue', 'Arial Black', Helvetica, Arial, sans-serif"
               font-weight="900"
               font-size="162"
               letter-spacing="-5"
               fill="#0e0e20">fd</text>
-        <!-- thick underline bar below the d -->
-        <rect x="90" y="156" width="76" height="12" rx="1" fill="#0e0e20"/>
+        <!-- thick underline bar — x/width snapped to "d" bounds via JS on load -->
+        <rect id="fd-bar" x="90" y="156" width="76" height="12" rx="1" fill="#0e0e20"/>
       </svg>
     </div>
   </section>
@@ -474,6 +474,24 @@
           requestAnimationFrame(function () { update(); rafPending = false; });
         }
       }
+
+      // Align underline bar right edge to the right edge of the "d" glyph
+      (function alignLogoBar() {
+        const txt = document.getElementById('fd-text');
+        const bar = document.getElementById('fd-bar');
+        if (!txt || !bar) return;
+        const bb   = txt.getBBox();   // exact rendered bounds in SVG user units
+        const barH = 11;
+        const barY = 162;             // fixed near bottom of 176px viewBox
+        // align bar's right edge to text's right edge; start ≈ where "d" begins
+        const barRight = bb.x + bb.width;
+        const barX     = bb.x + bb.width * 0.52;
+        const barW     = barRight - barX;
+        bar.setAttribute('x',      barX.toFixed(1));
+        bar.setAttribute('y',      barY);
+        bar.setAttribute('width',  barW.toFixed(1));
+        bar.setAttribute('height', barH);
+      })();
 
       // Hide scroll indicator once user starts scrolling
       const scrollHint = document.getElementById('scroll-hint');
